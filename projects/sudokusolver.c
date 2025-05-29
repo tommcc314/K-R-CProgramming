@@ -12,15 +12,15 @@
 #define max(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
 
 int board[9][9] = { /*Original board state. Zeros indicate empty cells*/
-{1,0,0,0,0,0,6,0,0},
-{0,9,0,1,4,6,3,0,0},
-{0,5,0,0,0,0,0,0,0},
-{0,2,0,0,0,5,0,0,0},
-{0,3,0,0,0,0,8,0,0},
-{9,0,0,0,0,3,0,2,1},
-{4,0,0,0,9,0,0,0,8},
-{0,0,8,0,0,0,0,6,0},
-{0,7,0,0,3,0,0,0,2}
+{0,4,1,7,0,0,0,0,8},
+{8,0,0,0,0,6,0,1,0},
+{0,0,0,1,8,0,9,0,0},
+{0,8,9,0,0,0,0,0,5},
+{0,6,2,0,0,0,8,0,0},
+{0,3,5,8,0,0,7,0,0},
+{0,0,4,5,0,8,0,0,9},
+{5,2,8,6,0,9,0,0,3},
+{0,0,0,0,4,0,5,8,0}
 };
 int solve(int board[9][9], int candidates[9][9][9], int depth);
 int candidates[9][9][9]; /*Binary array for every cell indicating candidate existance*/
@@ -459,7 +459,7 @@ int nakedtriple(int board[9][9], int candidates[9][9][9]) {
 /*  Attempts to solve using a forcing chain: Set a cell with 2 candidates to one of the values, then verify
     Returns 1 if a cell is forced, 0 if not */
 int chain(int board[9][9], int candidates[9][9][9], int depth) {
-  int newboard[9][9], newcandidates[9][9][9], ret;
+  int newboard[9][9], newcandidates[9][9][9], ret, altret;
   printf("In chain\n");
   for (int i = 0; i < 9; ++i)
     for (int j = 0; j < 9; ++j)
@@ -475,7 +475,7 @@ int chain(int board[9][9], int candidates[9][9][9], int depth) {
           memcpy(newboard, board, 9*9*sizeof(int));
           memcpy(newcandidates, candidates, 9*9*9*sizeof(int));
           fillcell(newboard, newcandidates, i, j, currcands[0] + 1);
-          if ((ret = solve(newboard, newcandidates, depth)) == ERROR) {
+          if ((ret = solve(newboard, newcandidates, depth)) == ERROR && depth == 1) {
             fillcell(board, candidates, i, j, currcands[1] + 1);
             return SUCCESS;
           }
@@ -487,15 +487,17 @@ int chain(int board[9][9], int candidates[9][9][9], int depth) {
           memcpy(newboard, board, 9*9*sizeof(int));
           memcpy(newcandidates, candidates, 9*9*9*sizeof(int));
           fillcell(newboard, newcandidates, i, j, currcands[1] + 1);
-          if ((ret = solve(newboard, newcandidates, depth)) == ERROR) {
+          if ((altret = solve(newboard, newcandidates, depth)) == ERROR && depth == 1) {
             fillcell(board, candidates, i, j, currcands[0] + 1);
             return SUCCESS;
           }
-          if (ret == SUCCESS) {
+          if (altret == SUCCESS) {
             memcpy(board, newboard, 9*9*sizeof(int));
             memcpy(candidates, newcandidates, 9*9*9*sizeof(int));
             return SUCCESS;
           }
+          if (ret == ERROR  && altret == ERROR)
+            return ERROR;
         }
       }
   printf("Chain could not find anything.\n");
@@ -553,7 +555,6 @@ int solve(int board[9][9], int candidates[9][9][9], int depth) {
 int main(int argc, char *argv[]) {
   if (init() == ERROR)
     printf("Invalid beginning board state!\n");
-  printf("Cell (3,2) has 1: %d, 5: %d", candidates[3][2][0], candidates[3][2][4]);
   int ret = solve(board, candidates, 0);
   if (ret == SUCCESS)
     printf("Solved!\n");
