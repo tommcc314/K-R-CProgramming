@@ -1,3 +1,7 @@
+/*  Sudoku solver which simulates human strategies to avoid exponential time complexity.
+    It includes a guess-and-check of depth 2, which should be enough to solve any sudoku:
+    https://math.stackexchange.com/questions/1379864/is-it-possible-to-solve-sudoku-without-backtracking. */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -8,15 +12,15 @@
 #define max(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
 
 int board[9][9] = { /*Original board state. Zeros indicate empty cells*/
-{0,0,0,0,0,0,4,0,9},
-{0,8,0,0,3,0,5,6,0},
-{0,5,6,0,0,0,0,0,7},
-{3,9,0,0,0,0,0,0,0},
-{0,0,8,0,0,0,1,0,0},
-{0,0,2,9,0,0,0,0,5},
-{0,0,0,0,4,0,0,1,0},
-{9,0,1,6,0,2,0,0,0},
-{0,0,3,0,9,0,0,0,2}
+{1,0,0,0,0,0,6,0,0},
+{0,9,0,1,4,6,3,0,0},
+{0,5,0,0,0,0,0,0,0},
+{0,2,0,0,0,5,0,0,0},
+{0,3,0,0,0,0,8,0,0},
+{9,0,0,0,0,3,0,2,1},
+{4,0,0,0,9,0,0,0,8},
+{0,0,8,0,0,0,0,6,0},
+{0,7,0,0,3,0,0,0,2}
 };
 int solve(int board[9][9], int candidates[9][9][9], int depth);
 int candidates[9][9][9]; /*Binary array for every cell indicating candidate existance*/
@@ -357,7 +361,7 @@ int nakeddouble(int board[9][9], int candidates[9][9][9]) {
   return ret;
 }
 
-/*  Finds and fills naked triples (when three cells have the same two candidates in a row/col/box)
+/*  Finds and fills naked triples (when three cells have the same three candidates in a row/col/box)
     Returns 1 if at least one useful candidate elimination is found, 0 if not, -1 if invalid state */
 int nakedtriple(int board[9][9], int candidates[9][9][9]) {
   printf("In naked triple\n");
@@ -540,7 +544,7 @@ int solve(int board[9][9], int candidates[9][9][9], int depth) {
     if ((curret = nakedsingle(board, candidates)) == ERROR)
       return curret;
     ret = max(ret, curret);
-    if (ret == NOPROGRESS && depth < 1)
+    if (ret == NOPROGRESS && depth < 2)
       ret = max(ret, chain(board, candidates, depth + 1));
   }
   return NOPROGRESS;
